@@ -48,32 +48,42 @@
     "commander": "^7.2.0",
     "commondir": "^1.0.1",
     "debug": "^4.3.1",
-    "dependency-tree": "^8.1.1",
-    "detective-amd": "^3.1.0",
-    "detective-cjs": "^3.1.1",
-    "detective-es6": "^2.2.0",
+    "dependency-tree": "https://github.com/AMoo-Miki/node-dependency-tree.git#remove-tsconfig-parsing",
+    "detective-amd": "^4.0.1",
+    "detective-cjs": "^4.0.0",
+    "detective-es6": "^3.0.0",
     "detective-less": "^1.0.2",
-    "detective-postcss": "^5.0.0",
-    "detective-sass": "^3.0.1",
-    "detective-scss": "^2.0.1",
-    "detective-stylus": "^1.0.0",
-    "detective-typescript": "^7.0.0",
+    "detective-postcss": "^6.1.0",
+    "detective-sass": "^4.0.1",
+    "detective-scss": "^3.0.0",
+    "detective-stylus": "^2.0.1",
+    "detective-typescript": "^9.0.0",
+    "json5": "^2.2.3",
     "graphviz": "0.0.9",
     "ora": "^5.4.1",
     "pluralize": "^8.0.0",
-    "precinct": "^8.1.0",
+    "precinct": "^9.0.1",
     "pretty-ms": "^7.0.1",
     "rc": "^1.2.7",
-    "typescript": "^3.9.5",
+    "typescript": "^4.0.0",
     "walkdir": "^0.4.1"
   },
   "devDependencies": {
     "@aptoma/eslint-config": "^7.0.1",
+    "@types/json5": "^2.2.0",
     "auto-changelog": "^2.4.0",
     "eslint": "^7.29.0",
     "mocha": "^9.0.1",
     "mz": "^2.7.0",
     "release-it": "^15.6.0",
     "should": "^13.2.3"
+  },
+  "overrides": {
+    "dependency-tree": {
+      "filing-cabinet": "https://github.com/AMoo-Miki/node-filing-cabinet.git#cache-parsed-config-and-bump-deps"
+    },
+    "filing-cabinet": {
+      "typescript": "^4.0.0"
+    }
   }
 }

@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 'use strict';
 
+/* eslint-disable no-sync */
+
 const path = require('path');
+const fs = require('fs');
+const JSON5 = require('json5');
 const process = require('process');
 const program = require('commander');
 const rc = require('rc')('madge');
@@ -23,20 +27,24 @@ program
 	.option('-x, --exclude <regexp>', 'exclude modules using RegExp')
 	.option('-j, --json', 'output as JSON')
 	.option('-i, --image <file>', 'write graph to file as an image')
+	.option('-I, --interactive <file>', 'write graph to file as an interactive html page')
 	.option('-l, --layout <name>', 'layout engine to use for graph (dot/neato/fdp/sfdp/twopi/circo)')
 	.option('--orphans', 'show modules that no one is depending on')
 	.option('--leaves', 'show modules that have no dependencies')
 	.option('--dot', 'show graph using the DOT language')
+	.option('--rankdir <direction>', 'set the direction of the graph layout')
 	.option('--extensions <list>', 'comma separated string of valid file extensions')
 	.option('--require-config <file>', 'path to RequireJS config')
 	.option('--webpack-config <file>', 'path to webpack config')
 	.option('--ts-config <file>', 'path to typescript config')
+	.option('--graphviz-path <path>', 'path to GraphViz installation')
+	.option('--detective-options <string>', 'JSON string to be passed to detective')
 	.option('--include-npm', 'include shallow NPM modules', false)
 	.option('--no-color', 'disable color in output and image', false)
 	.option('--no-spinner', 'disable progress spinner', false)
 	.option('--stdin', 'read predefined tree from STDIN', false)
 	.option('--warning', 'show warnings about skipped files', false)
-	.option('--debug', 'turn on debug output', false)
+	.option('--debug', 'turn on debug output', false)
 	.parse(process.argv);
 
 if (!program.args.length && !program.stdin) {
@@ -96,26 +104,55 @@ if (program.exclude) {
 }
 
 if (program.extensions) {
-	config.fileExtensions = program.extensions.split(',').map((s) => s.trim());
+	config.fileExtensions = program.extensions.split(/[, ]/).map((s) => s.trim());
 }
 
 if (program.requireConfig) {
-	config.requireConfig = program.requireConfig;
+	if (fs.existsSync(program.requireConfig)) {
+		config.requireConfig = program.requireConfig;
+	} else {
+		console.log(chalk.red(`\nError: Cannot find ${program.requireConfig}`));
+		process.exit(2);
+	}
 }
 
 if (program.webpackConfig) {
-	config.webpackConfig = program.webpackConfig;
+	if (fs.existsSync(program.webpackConfig)) {
+		config.webpackConfig = program.webpackConfig;
+	} else {
+		console.log(chalk.red(`\nError: Cannot find ${program.webpackConfig}`));
+		process.exit(2);
+	}
 }
 
 if (program.tsConfig) {
-	config.tsConfig = program.tsConfig;
+	if (fs.existsSync(program.tsConfig)) {
+		config.tsConfig = program.tsConfig;
+	} else {
+		console.log(chalk.red(`\nError: Cannot find ${program.tsConfig}`));
+		process.exit(2);
+	}
 }
 
-if (config.tsConfig) {
-	const ts = require('typescript');
-	const tsParsedConfig = ts.readJsonConfigFile(config.tsConfig, ts.sys.readFile);
-	const obj = ts.parseJsonSourceFileConfigFileContent(tsParsedConfig, ts.sys, path.dirname(config.tsConfig));
-	config.tsConfig = obj.raw;
+if (program.graphvizPath) {
+	const graphvizBinary = process.platform === 'win32' ? 'gvpr.exe' : 'gvpr';
+	if (fs.existsSync(path.join(program.graphvizPath, graphvizBinary))) {
+		config.graphVizPath = program.graphvizPath;
+	} else if (fs.existsSync(path.join(program.graphvizPath, 'bin', graphvizBinary))) {
+		config.graphVizPath = path.join(program.graphvizPath, 'bin');
+	} else {
+		console.log(chalk.red(`\nError: Cannot find ${graphvizBinary} in ${program.graphvizPath}`));
+		process.exit(2);
+	}
+}
+
+if (program.detectiveOptions) {
+	try {
+		config.detectiveOptions = JSON5.parse(program.detectiveOptions);
+	} catch (ex) {
+		console.log('\n%s\n%s', chalk.red('Error: Invalid JSON string'), program.detectiveOptions);
+		process.exit(2);
+	}
 }
 
 if (program.includeNpm) {
@@ -128,6 +165,10 @@ if (!program.color) {
 	config.noDependencyColor = '#000000';
 	config.cyclicNodeColor = '#000000';
 	config.edgeColor = '#757575';
+}
+
+if (program.rankdir) {
+	config.rankdir = program.rankdir;
 }
 
 function dependencyFilter() {
@@ -247,6 +288,13 @@ function createOutputFromOptions(program, res) {
 	if (program.image) {
 		return res.image(program.image, program.circular).then((imagePath) => {
 			spinner.succeed(`${chalk.bold('Image created at')} ${chalk.cyan.bold(imagePath)}`);
+			return res;
+		});
+	}
+
+	if (program.interactive) {
+		return res.interactive(program.interactive, program.circular).then((pagePath) => {
+			spinner.succeed(`${chalk.bold('Html page created at')} ${chalk.cyan.bold(pagePath)}`);
 			return res;
 		});
 	}
