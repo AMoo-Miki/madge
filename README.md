@@ -378,6 +378,13 @@ madge --dot path/src/app.js > graph.gv
 madge --json path/src/app.js | tr '[a-z]' '[A-Z]' | madge --stdin
 ```
 
+> Complex example
+
+```sh
+madge .\consequat\src -i madge.svg --ts-config .\consequat\tsconfig.json --webpack-config .\consequat\packages\osd-pm\webpack.config.js -b .\consequat\ --exclude '(.*\.(d|mocks?|test)\.[jt]s$|\.(txt|json|scss|css|html)$|\/(mock_data|__tests__|
+__fixtures__|__mocks__)\/)' --warning
+```
+
 # Interactive Controls
 `Left click` selects node(with edges) or edge. Other edges will be dimmed.
 
