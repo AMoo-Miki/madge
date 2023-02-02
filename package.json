@@ -44,6 +44,7 @@
     "url": "https://www.paypal.me/pahen"
   },
   "dependencies": {
+    "@hpcc-js/wasm": "^2.8.0",
     "chalk": "^4.1.1",
     "commander": "^7.2.0",
     "commondir": "^1.0.1",
