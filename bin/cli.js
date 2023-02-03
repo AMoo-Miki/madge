@@ -183,7 +183,7 @@ config.getNodeAttributes = (file) => {
   else if (file.startsWith('packages/')) group = file.replace(/^(packages\/[^\/]+)\/.*$/, '$1');
   else console.warn('Failed grouping:', file);
 
-  return { group };
+  return group;
 };
 
 function dependencyFilter() {
